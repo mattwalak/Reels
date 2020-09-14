@@ -16,8 +16,25 @@ public class ReelSet : MonoBehaviour
         GameObject reelObj = new GameObject("reel " + reels.Count);
         reelObj.transform.SetParent(reelParent.transform);
         Reel r = reelObj.AddComponent<Reel>();
-        r.Init(1, reel_height);
+        r.Init(StaticData.next_reel_type, reel_height);
+        StaticData.next_reel_type = (StaticData.next_reel_type + 1) % StaticData.NUM_REEL_TYPES;
         return r;
+    }
+
+    private void repositionReels()
+    {
+        float scale = 1.0f / reels.Count;
+        float stride_x = 2 * StaticData.cam_width / reels.Count;
+        float min_x = -StaticData.cam_width + (stride_x / 2.0f);
+        float stride_y = 2 * StaticData.cam_height / reels.Count;
+        float min_y = -StaticData.cam_height + (stride_y / 2.0f);
+        for (int i = 0; i < reels.Count; i++)
+        {
+            Vector2 new_pos = new Vector2(min_x + i * stride_x, min_y);
+            Vector2 new_scale = new Vector2(scale, scale);
+            reels[i].transform.parent.transform.localPosition = new_pos;
+            reels[i].transform.parent.transform.localScale = new_scale;
+        }
     }
 
     public void Init(int height)
@@ -30,26 +47,29 @@ public class ReelSet : MonoBehaviour
 
     public void PushReel()
     {
-        reels.Add(genNewReel());
-
-        // Reposition reels
-        float scale = 1.0f / reels.Count;
-        float stride_x = 2 * StaticData.cam_width / reels.Count;
-        float min_x = -StaticData.cam_width + (stride_x / 2.0f);
-        float stride_y = 2 * StaticData.cam_height / reels.Count;
-        float min_y = -StaticData.cam_height + (stride_y / 2.0f);
-        for(int i = 0; i < reels.Count; i++)
+        if(reels.Count == StaticData.MAX_REELS)
         {
-            Vector2 new_pos = new Vector2(min_x + i*stride_x, min_y);
-            Vector2 new_scale = new Vector2(scale, scale);
-            reels[i].transform.parent.transform.localPosition = new_pos;
-            reels[i].transform.parent.transform.localScale = new_scale;
+            Debug.Log("Can't add any more reels");
+        }
+        else
+        {
+            reels.Add(genNewReel());
+            repositionReels();
         }
     }
 
     public void PopReel()
     {
-
+        if(reels.Count == 1)
+        {
+            Debug.Log("Can't pop with 1 reel");
+        }
+        else
+        {
+            Destroy(reels[reels.Count - 1].gameObject);
+            reels.RemoveAt(reels.Count - 1);
+            repositionReels();
+        }
     }
 
     public void ScrollReel(int index, float amount)
