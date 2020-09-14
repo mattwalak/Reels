@@ -81,13 +81,13 @@ public class Page : MonoBehaviour
         render_bg.material.color = colors[0];
         render_bg.sortingLayerName = "BG";
 
-        int num_squares = (int) data[0];
+        int num_squares = data.Count / 4;
         for(int i = 0; i < num_squares; i++)
         {
-            float x = data[1 + i * 4 + 0];
-            float y = data[1 + i * 4 + 1];
-            float x_scale = data[1 + i * 4 + 2];
-            float y_scale = data[1 + i * 4 + 3];
+            float x = data[i * 4 + 0];
+            float y = data[i * 4 + 1];
+            float x_scale = data[i * 4 + 2];
+            float y_scale = data[i * 4 + 3];
 
             /*if ((y + y_scale / 2.0f) > StaticData.cam_height)
                 y_scale = (StaticData.cam_height - y) * 2.0f; // TOP BOUND
@@ -110,6 +110,7 @@ public class Page : MonoBehaviour
     // Random circles
     private void GeoInit_2(List<Color> colors, List<float> data)
     {
+        // BG
         GameObject bg = Instantiate(StaticData.square, transform);
         bg.transform.localPosition = Vector2.zero;
         bg.transform.localScale = new Vector2(2.0f * StaticData.cam_width, 2.0f * StaticData.cam_height);
@@ -117,12 +118,12 @@ public class Page : MonoBehaviour
         render_bg.material.color = colors[0];
         render_bg.sortingLayerName = "BG";
 
-        int num_circles = (int)data[0];
+        int num_circles = data.Count / 3;
         for (int i = 0; i < num_circles; i++)
         {
-            float x = data[1 + i * 3 + 0];
-            float y = data[1 + i * 3 + 1];
-            // float scale = data[1 + i * 3 + 2];
+            float x = data[i * 3 + 0];
+            float y = data[i * 3 + 1];
+            float scale = data[i * 3 + 2];
 
             /*if ((y + y_scale / 2.0f) > StaticData.cam_height)
                 y_scale = (StaticData.cam_height - y) * 2.0f; // TOP BOUND
@@ -133,13 +134,24 @@ public class Page : MonoBehaviour
             if ((x - x_scale / 2.0f) < -StaticData.cam_width)
                 x_scale = (StaticData.cam_width + x) * 2.0f; // LEFT BOUND*/
 
-            GameObject circle = Instantiate(StaticData.blendCircle, transform);
+            GameObject circle = Instantiate(StaticData.circle, transform);
             circle.transform.localPosition = new Vector2(x, y);
-            circle.transform.localScale = new Vector2(8.0f, 8.0f);
-            Renderer render = circle.GetComponent<Renderer>();
+            circle.transform.localScale = new Vector2(scale, scale);
+            SpriteRenderer render = circle.transform.GetChild(0).GetComponent<SpriteRenderer>();
             render.material.color = colors[1];
             render.sortingLayerName = "Midground_1";
+            render.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
         }
+
+        // Sprite mask
+        GameObject maskObj = new GameObject("Mask");
+        maskObj.transform.SetParent(transform);
+        SpriteMask mask = maskObj.AddComponent<SpriteMask>();
+        maskObj.transform.localPosition = Vector2.zero;
+        mask.sprite = StaticData.squareSprite;
+        Vector3 size = mask.sprite.bounds.max - mask.sprite.bounds.min;
+
+        maskObj.transform.localScale = new Vector2(2.0f * StaticData.cam_width / size.x, 2.0f * StaticData.cam_height / size.y);
     }
 
 }

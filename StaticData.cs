@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,6 +9,8 @@ public static class StaticData
     public static GameObject blendSquare;
     public static GameObject square;
     public static GameObject blendCircle;
+    public static GameObject circle;
+    public static Sprite squareSprite;
     public static float cam_width;
     public static float cam_height;
     public const int MAX_REELS = 10;
@@ -26,6 +29,19 @@ public static class StaticData
     public static List<float> RectIntersect()
     {
         return null;
+    }
+
+    // Returns true if intersects, false otherwise
+    public static bool CircleIntersects(List<float> data, float x, float y, float diameter)
+    {
+        int num_circles = data.Count / 3;
+        for(int i = 0; i < num_circles; i++)
+        {
+            float dist = Mathf.Sqrt(Mathf.Pow(x - data[i*3 + 0], 2) + Mathf.Pow(y - data[i*3 + 1], 2));
+            if (dist < diameter)
+                return true;
+        }
+        return false;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////

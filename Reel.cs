@@ -103,8 +103,7 @@ public class Reel : MonoBehaviour
     // Random rectangles
     private void PageInit_1()
     {
-        int min_squares = 1;
-        int max_squares = 4;
+        int num_attempts = 3;
         float min_size = 3.0f;
         float max_size = 1.0f*StaticData.cam_height;
         float min_aspect = 1.5f; // width / height
@@ -118,53 +117,31 @@ public class Reel : MonoBehaviour
             pages.Add(p.AddComponent<Page>());
 
             // Generate square positions
-            int numSquares = (int)UnityEngine.Random.Range(min_squares + .001f, max_squares + .001f); // Mind the rounding
             List<float> data = new List<float>();
-            data.Add(numSquares + .001f); // Make sure there is no dumb rounding down or anything -> read this value with Mathf.Floor();
-
-            // Relative position data
-            float last_x = (UnityEngine.Random.Range(0.0f, 1.0f) > 0.5f ? 0 : StaticData.cam_width);
-            float last_y = 2.0f * StaticData.cam_height;
-            float min_dy = -2.0f * StaticData.cam_height * 2.0f / numSquares; // y can only go negative
-            float max_dy = -2.0f * StaticData.cam_height * 0.5f / numSquares; 
-            float min_dx = -2.0f * StaticData.cam_width * 2.0f / numSquares; // x can go both positive and negative
-            float max_dx = -min_dx;
-
-
-            // Note that coordinates are in [0, 2*side] and are shifted when added to the data array
-            // (Makes it easier for the mod operator)
-            for (int j = 0; j < numSquares; j++)
+            for (int j = 0; j < num_attempts; j++)
             {
-                float x = last_x + UnityEngine.Random.Range(min_dx, max_dx);
-                if (x < 0)
-                    x = 2.0f * StaticData.cam_width - (Mathf.Abs(x) % (2.0f*StaticData.cam_width));
-                x = x % (2.0f*StaticData.cam_width);
-                last_x = x;
+                float x = UnityEngine.Random.Range(-StaticData.cam_width, StaticData.cam_width);
+                float y = UnityEngine.Random.Range(-StaticData.cam_height, StaticData.cam_height);
 
-                float y = last_y + UnityEngine.Random.Range(min_dy, max_dy);
-                if (y < 0)
-                    y = 2.0f * StaticData.cam_width - (Mathf.Abs(y) % (2.0f * StaticData.cam_height));
-                y = y % (2.0f * StaticData.cam_height);
-                last_y = y;
-
-                float scale_x = UnityEngine.Random.Range(min_size, max_size);
+                float scale_y = UnityEngine.Random.Range(min_size, max_size);
+                float scale_x = scale_y * max_aspect;
                 float aspect = UnityEngine.Random.Range(min_aspect, max_aspect);
-                data.Add(x - StaticData.cam_width); // Readust to [-side, side]
-                data.Add(y - StaticData.cam_height);
-                data.Add(scale_x*aspect);
-                data.Add(scale_x);
+
+                data.Add(x);
+                data.Add(y);
+                data.Add(scale_y * aspect);
+                data.Add(scale_y);
             }
 
             pages[i].Init(1, colors, data);
         }
     }
 
+    // Random circles
     private void PageInit_2()
     {
-        int min_circles = 1;
-        int max_circles = 4;
-        float min_size = 3.0f;
-        float max_size = 1.0f * StaticData.cam_height;
+        int num_attempts = 2;
+        float diameter = 8.0f;
 
         for (int i = 0; i < height; i++)
         {
@@ -173,47 +150,24 @@ public class Reel : MonoBehaviour
             p.transform.localPosition = new Vector2(0.0f, StaticData.cam_height * 2 * i); ;
             pages.Add(p.AddComponent<Page>());
 
-            // Generate square positions
-            int numCircles = (int)UnityEngine.Random.Range(min_circles + .001f, max_circles + .001f); // Mind the rounding
+            // Generate circle positions
+          
             List<float> data = new List<float>();
-            data.Add(numCircles + .001f); // Make sure there is no dumb rounding down or anything -> read this value with Mathf.Floor();
-
-            // Relative position data
-            float last_x = (UnityEngine.Random.Range(0.0f, 1.0f) > 0.5f ? 0 : StaticData.cam_width);
-            float last_y = 2.0f * StaticData.cam_height;
-            float min_dy = -2.0f * StaticData.cam_height * 2.0f / numCircles; // y can only go negative
-            float max_dy = -2.0f * StaticData.cam_height * 0.5f / numCircles;
-            float min_dx = -2.0f * StaticData.cam_width * 2.0f / numCircles; // x can go both positive and negative
-            float max_dx = -min_dx;
-
-
-            // Note that coordinates are in [0, 2*side] and are shifted when added to the data array
-            // (Makes it easier for the mod operator)
-            for (int j = 0; j < numCircles; j++)
+            for (int j = 0; j < num_attempts; j++)
             {
-                float x = last_x + UnityEngine.Random.Range(min_dx, max_dx);
-                if (x < 0)
-                    x = 2.0f * StaticData.cam_width - (Mathf.Abs(x) % (2.0f * StaticData.cam_width));
-                x = x % (2.0f * StaticData.cam_width);
-                last_x = x;
+                float x = UnityEngine.Random.Range(-StaticData.cam_width, StaticData.cam_width);
+                float y = UnityEngine.Random.Range(-StaticData.cam_height + diameter/2.0f, StaticData.cam_height - diameter/2.0f);
 
-                float y = last_y + UnityEngine.Random.Range(min_dy, max_dy);
-                if (y < 0)
-                    y = 2.0f * StaticData.cam_width - (Mathf.Abs(y) % (2.0f * StaticData.cam_height));
-                y = y % (2.0f * StaticData.cam_height);
-                last_y = y;
-
-                float scale_x = UnityEngine.Random.Range(min_size, max_size);
-                data.Add(x - StaticData.cam_width); // Readust to [-side, side]
-                data.Add(y - StaticData.cam_height);
-                data.Add(scale_x);
+                if (!StaticData.CircleIntersects(data, x, y, diameter+.5f))
+                {
+                    data.Add(x);
+                    data.Add(y);
+                    data.Add(diameter);
+                }
             }
 
             pages[i].Init(2, colors, data);
         }
     }
-
-
-
     
 }
